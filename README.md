@@ -1,0 +1,2 @@
+# android-ThreeLevelExpandableListView
+这是一个自定义的Adapter结合Android原生的ExpandableListView来实现三级扩展列表功能。
