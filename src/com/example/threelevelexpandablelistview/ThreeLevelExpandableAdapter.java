@@ -161,6 +161,11 @@ public abstract class ThreeLevelExpandableAdapter extends
 			return true;
 		}
 
+		/**
+		 * The adapter for the third level gridview
+		 * @author Liyanshun
+		 *
+		 */
 		private class GridAdapter extends BaseAdapter {
 			@Override
 			public int getCount() {
