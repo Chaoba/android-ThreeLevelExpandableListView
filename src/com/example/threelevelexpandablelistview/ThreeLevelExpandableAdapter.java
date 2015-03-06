@@ -5,18 +5,25 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.GridView;
 
+/**
+ * Base class that can let ExpandableListView show three level
+ * 
+ * @author Liyanshun
+ * 
+ */
 public abstract class ThreeLevelExpandableAdapter extends
 		BaseExpandableListAdapter {
 
 	public static final String TAG = "ThreeLevelExpandableAdapter";
 	public Context mContext;
+	private OnItemClickListener mListener;
+	private int mThreeLevelColumns = 2;
 
 	private class CustExpListview extends ExpandableListView {
 
@@ -33,13 +40,17 @@ public abstract class ThreeLevelExpandableAdapter extends
 		}
 	}
 
-	public ThreeLevelExpandableAdapter(Context context) {
+	public ThreeLevelExpandableAdapter(Context context,
+			OnItemClickListener listener) {
 		mContext = context;
+		mListener = listener;
 	}
 
 	@Override
 	public View getChildView(int groupPosition, int childPosition,
 			boolean isLastChild, View convertView, ViewGroup parent) {
+		// for the second level, every child is a single ExpandableListView
+		// which has only one child
 		ChildExpandableListAdapter carStyleAdapter = new ChildExpandableListAdapter(
 				groupPosition, childPosition);
 		CustExpListview SecondLevelexplv = new CustExpListview(mContext);
@@ -53,8 +64,7 @@ public abstract class ThreeLevelExpandableAdapter extends
 		return true;
 	}
 
-	class ChildExpandableListAdapter extends BaseExpandableListAdapter
-			implements OnItemClickListener {
+	class ChildExpandableListAdapter extends BaseExpandableListAdapter {
 		private int mFatherGroupPosition, mChildGroupPosition;
 
 		public ChildExpandableListAdapter(int groupPosition, int childPosition) {
@@ -64,11 +74,15 @@ public abstract class ThreeLevelExpandableAdapter extends
 
 		@Override
 		public int getGroupCount() {
+			// every second level has only one group,which will show second
+			// level contents
 			return 1;
 		}
 
 		@Override
 		public int getChildrenCount(int groupPosition) {
+			// every second level has only one child that is a gridview,this
+			// gridview will contains three level contents
 			return 1;
 		}
 
@@ -86,19 +100,16 @@ public abstract class ThreeLevelExpandableAdapter extends
 
 		@Override
 		public long getGroupId(int groupPosition) {
-			// TODO Auto-generated method stub
 			return 0;
 		}
 
 		@Override
 		public long getChildId(int groupPosition, int childPosition) {
-			// TODO Auto-generated method stub
 			return 0;
 		}
 
 		@Override
 		public boolean hasStableIds() {
-			// TODO Auto-generated method stub
 			return false;
 		}
 
@@ -120,22 +131,26 @@ public abstract class ThreeLevelExpandableAdapter extends
 						null);
 
 				gridView = (GridView) convertView.findViewById(R.id.gridview);
-				gridView.setNumColumns(2);// 设置每行列数
-				gridView.setGravity(Gravity.CENTER);// 位置居中
-				gridView.setHorizontalSpacing(10);// 水平间隔
+				// change columns of the three level
+				gridView.setNumColumns(mThreeLevelColumns);
+				gridView.setGravity(Gravity.CENTER);
+				gridView.setHorizontalSpacing(10);
 
 				gridView.setAdapter(new GridAdapter());
 
-				// 计算并设置gridView的高度
+				// set the height of each row of three level
 				final int rowHeightDp = 40;
 				final float ROW_HEIGHT = mContext.getResources()
 						.getDisplayMetrics().density * rowHeightDp;
-				int grandChildCount=getThreeLevelCount(
-						mFatherGroupPosition, mChildGroupPosition);
-				int rowCount = (int) Math.ceil( (double)grandChildCount/ 2);
+				int grandChildCount = getThreeLevelCount(mFatherGroupPosition,
+						mChildGroupPosition);
+				int rowCount = (int) Math.ceil((double) grandChildCount
+						/ mThreeLevelColumns);
 				final int GRID_HEIGHT = (int) (ROW_HEIGHT * rowCount);
 				gridView.getLayoutParams().height = GRID_HEIGHT;
-				gridView.setOnItemClickListener(this);
+				if (mListener != null) {
+					gridView.setOnItemClickListener(mListener);
+				}
 			}
 
 			return convertView;
@@ -143,15 +158,7 @@ public abstract class ThreeLevelExpandableAdapter extends
 
 		@Override
 		public boolean isChildSelectable(int groupPosition, int childPosition) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public void onItemClick(AdapterView<?> parent, View view, int position,
-				long id) {
-			// TODO Auto-generated method stub
-
+			return true;
 		}
 
 		private class GridAdapter extends BaseAdapter {
@@ -182,17 +189,52 @@ public abstract class ThreeLevelExpandableAdapter extends
 
 	}
 
+	/**
+	 * implement this method to get the count of the third level
+	 * 
+	 * @param firstLevelPosition
+	 * @param secondLevelPosition
+	 * @return the count of the third level
+	 */
 	public abstract int getThreeLevelCount(int firstLevelPosition,
 			int secondLevelPosition);
 
+	/**
+	 * implement this method to get the view that will show on the second level
+	 * 
+	 * @param firstLevelPosition
+	 * @param secondLevelPosition
+	 * @param isExpanded
+	 * @param convertView
+	 * @param parent
+	 * @return the view that will show on the second level
+	 */
 	public abstract View getSecondLevleView(int firstLevelPosition,
 			int secondLevelPosition, boolean isExpanded, View convertView,
 			ViewGroup parent);
 
+	/**
+	 * implement this method to get the view that will show on the third level
+	 * 
+	 * @param firstLevelPosition
+	 * @param secondLevelPosition
+	 * @param ThreeLevelPosition
+	 * @param convertView
+	 * @param parent
+	 * @return
+	 */
 	public abstract View getThreeLevleView(int firstLevelPosition,
 			int secondLevelPosition, int ThreeLevelPosition, View convertView,
 			ViewGroup parent);
 
+	/**
+	 * implement this method to get the object on the third level
+	 * 
+	 * @param groupPosition
+	 * @param childPosition
+	 * @param grandChildPosition
+	 * @return
+	 */
 	public abstract Object getGrandChild(int groupPosition, int childPosition,
 			int grandChildPosition);
 }
